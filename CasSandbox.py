@@ -13,22 +13,11 @@ To-do
   ‣Make blocks get IDs automatically
 """
 #================================
-from random import *
 from math import *
 from ti_draw import *
 from ti_system import *
-# try:
-#     from ti_draw import *
-#     from ti_system import *
-# # except ModuleNotFoundError:
-# #     from draw import *
-# #     from system import *
-# #     import json
-
-
-
 #================================
-#3,2,6,53,106,159,318
+#3,2,6,53,106,159,318 
 #2,4,53,106,212
 screenWidth=318
 screenHeight=212
@@ -48,6 +37,8 @@ keysLeftLeft = {"square","**"}
 keysRightRight ={"*","/"}
 keysUp ={"up","8","w"}
 keysDown ={"down","2","s"}
+keysUpUp ={"upup","."}
+keysDownDown ={"downdown","k"}
 keysPlace ={"center","5"}
 keysAntiClock={"AntiClock","7"}
 keysClock={"Clock","9"}
@@ -80,11 +71,12 @@ debugG=Mats([-3],[],-1,(0,255,0))
 debugB=Mats([-2],[],-1,(0,0,255))
 air=Mats([-1],[0],0,(210,220,255))
 sand=Mats([2,1],[7],3,(246,237,90))
-waterR=Mats([4,3],[8],2,(82,102,200),(70,140,255))
-waterL=Mats([6,5],[9],2,(70,140,255),(82,102,200))
+waterR=Mats([4,3],[8],2,(82,102,200))
+waterL=Mats([6,5],[9],2,(70,140,255))
 stone=Mats([11,10],[12],5,(150,150,150))
 wood=Mats([13,14],[15],1,(155,100,20),)
 void=Mats([16,17,18],[],99,(250,220,200))
+bedrock=Mats([19,20],[21],90,(100,120,150))
 
 # ua is a set of all unactives
 ua={0}
@@ -105,7 +97,8 @@ plc = {
   3: 5,
   4: 10,
   5: 13,
-  6: 16}
+  6: 16,
+  7: 19}
 # placable blocks names
 plcn ={
   1: "Sand",
@@ -113,7 +106,8 @@ plcn ={
   3: "Water (Left)",
   4: "Stone",
   5: "Wood",
-  6: "Void"}
+  6: "Void",
+  7: "Bedrock"}
 
 # Return a list with each list containing a list
 def CreateMatrix(x,y):
@@ -210,7 +204,7 @@ def UpdateData(k):
           else: rep(cc-1,rr,cr)
           rep(cc,rr,-1)
         elif k in keysRight:
-          if chk(cc+1,rr)==0: rep(cc+1,rr,-5)
+          if (cc<len(scrn)-1): rep(cc+1,rr,-5)
           else: rep(0,rr,-5)
           rep(cc,rr,-1)
         if k in keysLeftLeft:
@@ -218,9 +212,17 @@ def UpdateData(k):
           else: rep(cc-2,rr,chk(cc,rr))
           rep(cc,rr,-1)
         elif k in keysRightRight:
-          if chk(cc+2,rr)==0: rep(cc+2,rr,-5)
-          else: rep(0,rr,-5)
+          if cc+1<len(scrn)-1: rep(cc+2,rr,-5)
+          else: rep((-len(scrn)+cc),rr,-5)
           rep(cc,rr,-1)
+        elif k in keysDownDown:
+          if (get[chk(cc,rr+1)].d < get[-5].d):
+            rep(cc,rr+1,-5)
+            rep(cc,rr,-1)
+        elif k in keysUpUp:
+          if (get[chk(cc,rr-1)].d < get[-5].d):
+            rep(cc,rr-1,-4)
+            rep(cc,rr,-1)
 
         elif k in keysPlace:
           rep(cc,rr+1,get[plc[slc]].a[0])
@@ -231,7 +233,8 @@ def UpdateData(k):
           if(cc!=len(scrn)-1):
             rep(cc+1,rr+1,get[plc[slc]].a[0])
         elif k in keysUp:
-          repr(1,get[plc[slc]].a[0])
+          repr(rr+1,get[plc[slc]].a[0])
+
         elif k in keysAntiClock:
           slc-=1
           if (slc==0): slc=len(plc)
@@ -247,7 +250,9 @@ def UpdateData(k):
       elif (cr==11): rep(cc,rr,10)
       elif (cr==13): rep(cc,rr,14)
       elif (cr==17): rep(cc,rr,16)
-      # Logic blocks
+      elif (cr==19): rep(cc,rr,20)
+      elif (cr==20): rep(cc,rr,21)
+    # Logic blocks
       #Water
       elif (cr==3):
         if (get[chk(cc,rr+1)].d < get[cr].d):
@@ -344,18 +349,8 @@ def UpdateData(k):
         else:
           rep(cc,rr,7)
 
-def UpdateNear(c,r,d=-1):
-  if(chk(c+1,r)>0 and d != 0):
-    rep(c+1,r,get[chk(c+1,r)].a[0])
-  if(chk(c-1,r)>0 and d != 2):
-    rep(c-1,r,get[chk(c-1,r)].a[0])
-  if(chk(c,r+1)>0 and d != 3):
-    rep(c,r+1,get[chk(c,r+1)].a[0])
-  if(chk(c,r-1)>0 and d != 1):
-    rep(c,r-1,get[chk(c-1,r)].a[0])
-
 def FillBlank():
-  set_color((255,255,255))
+  set_color(255,255,255)
   fill_rect(0,0,screenWidth,screenHeight)
 
 def UpdateAllDisplay(scaleX=px,scaleY=py,shiftX=-1,shiftY=-6):
@@ -393,9 +388,9 @@ def UpdateMenu(k):
   # run on first frame of pause
   if (pause):
     pause = False
-    set_color((40,40,40))
+    set_color(40,40,40)
     fill_rect(0,0,400,400)
-    set_color((250,250,250))
+    set_color(250,250,250)
     for i in range(len(saveSlots)):
       draw_text(20*4*i-1,80,"Save slot "+saveSlots[i])
   cp=-px
@@ -457,7 +452,7 @@ def UpdateMenu(k):
         fill_rect(cp*2,rp*2,px*2,py*2)
         rep(c,r,0,1)
     rp=-py
-  set_color((250,250,250))
+  set_color(250,250,250)
   draw_text(5,20,str(slc)+": "+plcn[slc])
   set_color(get[chk(c,r,menu)].c1)
 
@@ -490,12 +485,10 @@ rep(0,0,-2)
 
 pause=False
 paused=False
-#while get_key() != "esc":
 while True:
-#  use_buffer()
+  #use_buffer()
   k = get_key()
-  # k = "0"
-  # if len(k)>0:print(k)
+#  if len(k)>0:print(k)
   if(k in keysPause):
     pause=True
     paused=not paused

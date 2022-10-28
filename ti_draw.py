@@ -19,9 +19,13 @@ def draw_text(x,y,text):
     t.write(text)
 
 
-def set_color(rgb):
-    r,g,b=rgb[0]/255,rgb[1]/255,rgb[2]/255
-    t.color(r, g, b)
+def set_color(_rgb, _g=-1, _b=-1):
+    if (_b==-1):
+        r,g,b=_rgb[0]/255,_rgb[1]/255,_rgb[2]/255
+        t.color(r, g, b)
+    else:
+        r,g,b=_rgb/255,_g/255,_b/255
+
 
 def check_buffer():
     print(t.tracer())
